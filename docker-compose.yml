@@ -1,5 +1,3 @@
----
-
 services:
   verba:
     build:
@@ -8,7 +6,7 @@ services:
     ports:
       - 8000:8000
     environment:
-      - WEAVIATE_URL_VERBA=http://weaviate:8080
+      - WEAVIATE_URL_VERBA=http://weaviate:8081  # Update port to match the new port in the weaviate service
       - OPENAI_API_KEY=$OPENAI_API_KEY
       - COHERE_API_KEY=$COHERE_API_KEY
       - OLLAMA_URL=http://host.docker.internal:11434
@@ -17,7 +15,6 @@ services:
       - UNSTRUCTURED_API_KEY=$UNSTRUCTURED_API_KEY
       - UNSTRUCTURED_API_URL=$UNSTRUCTURED_API_URL
       - GITHUB_TOKEN=$GITHUB_TOKEN
-
     volumes:
       - ./data:/data/
     depends_on:
@@ -37,18 +34,18 @@ services:
       - --host
       - 0.0.0.0
       - --port
-      - '8080'
+      - '8081'  # Change to a different port to avoid conflict
       - --scheme
       - http
     image: semitechnologies/weaviate:1.25.10
     ports:
-      - 8080:8080
+      - 8081:8081  # Change to 8081 to avoid conflict
       - 3000:8080
     volumes:
       - weaviate_data:/var/lib/weaviate
     restart: on-failure:0
     healthcheck:
-      test: wget --no-verbose --tries=3 --spider http://localhost:8080/v1/.well-known/ready || exit 1
+      test: wget --no-verbose --tries=3 --spider http://localhost:8081/v1/.well-known/ready || exit 1  # Update healthcheck port
       interval: 5s
       timeout: 10s
       retries: 5
@@ -64,31 +61,9 @@ services:
     networks:
       - ollama-docker
 
-  # Uncomment to use Ollama within the same docker compose
-
-  # ollama:
-  #     image: ollama/ollama:latest
-  #     ports:
-  #       - 7869:11434
-  #     volumes:
-  #       - .:/code
-  #       - ./ollama/ollama:/root/.ollama
-  #     container_name: ollama
-  #     pull_policy: always
-  #     tty: true
-  #     restart: always
-  #     environment:
-  #       - OLLAMA_KEEP_ALIVE=24h
-  #       - OLLAMA_HOST=0.0.0.0
-  #     networks:
-  #       - ollama-docker
-
 volumes:
   weaviate_data: {}
-
 
 networks:
   ollama-docker:
     external: false
-  
-...
